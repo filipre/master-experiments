@@ -2,4 +2,3 @@ MNIST
 __pycache__
 admm-logistic-regression/graphs/*
 !admm-logistic-regression/graphs/.empty
-admm-logistic-regression/copy_graphs/*
