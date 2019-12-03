@@ -39,7 +39,7 @@ def main():
     parser.add_argument('--delay-method', type=str, default='constant', help='constant, uniform, ...')
     parser.add_argument('--multiplier', type=str2bool, default=False, help='Use lag. multipliers?')
     parser.add_argument('--split', type=str2bool, default=False, help='split?')
-
+    parser.add_argument('--partial', type=int, default=None, help='partial? (default: None)')
     # parser.add_argument('--lambda1', type=float, default=0.01, help='lambda 1 (default: 0.01)')
     # parser.add_argument('--lambda2', type=float, default=0.02, help='lambda 2 (default: 0.02)')
     args = parser.parse_args()
@@ -51,11 +51,14 @@ def main():
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    # setting device on GPU if available, else CPU
+    print('Using device:', device)
+    print()
 
     if args.split:
-        train_dataloader = dataloader.getSplittedTrainingLoaders(args.number_nodes, args.node_batch_size, kwargs, partial=None)
+        train_dataloader = dataloader.getSplittedTrainingLoaders(args.number_nodes, args.node_batch_size, kwargs, partial=args.partial)
     else:
-        train_dataloader = dataloader.getSameTrainingLoaders(args.number_nodes, args.node_batch_size, kwargs, partial=None)
+        train_dataloader = dataloader.getSameTrainingLoaders(args.number_nodes, args.node_batch_size, kwargs, partial=args.partial)
     test_dataloader = dataloader.getTestLoader(kwargs)
     progress_dataloader = dataloader.getProgressLoader(kwargs)
 
@@ -72,7 +75,12 @@ def main():
     rhos = [args.rho] * args.number_nodes
     lrs = [args.lr] * args.number_nodes
 
-    augmented_lagrangians, progress_losses = [], []
+    augmented_lagrangians, progress_losses, progress_accs = [], [], []
+    node_scores, node_losses, node_residuals = [], [], []
+    for node in range(args.number_nodes):
+        node_scores.append([])
+        node_losses.append([])
+        node_residuals.append([])
 
     # Algorithm
     for t in range(args.max_iterations):
@@ -106,9 +114,12 @@ def main():
 
             # xk update
             if args.multiplier:
-                xk_model = xkSolverWithMult.solve(xk_model, train_dataloader[k], device, x0_model, yk_model, rhos[k], lrs[k], args.node_epoch)
+                xk_model, scores, losses, residuals = xkSolverWithMult.solve(xk_model, train_dataloader[k], device, x0_model, yk_model, rhos[k], lrs[k], args.node_epoch)
             else:
-                xk_model = xkSolverNoMult.solve(xk_model, train_dataloader[k], device, x0_model, rhos[k], lrs[k], args.node_epoch)
+                xk_model, scores, losses, residuals = xkSolverNoMult.solve(xk_model, train_dataloader[k], device, x0_model, rhos[k], lrs[k], args.node_epoch)
+            node_scores[k] = node_scores[k] + scores
+            node_losses[k] = node_losses[k] + losses
+            node_residuals[k] = node_residuals[k] + residuals
 
             # yk update
             if args.multiplier:
@@ -139,6 +150,7 @@ def main():
             aug_lagrangian, progress_loss, progress_acc = augLagrangianNoMult.get(progress_dataloader, device, x0_model, xk_models, rhos)
         augmented_lagrangians.append(aug_lagrangian)
         progress_losses.append(progress_loss)
+        progress_accs.append(progress_acc)
         print(f"[{t}] Augmented Lagrangian: {aug_lagrangian}, Loss: {progress_loss}, Acc: {(progress_acc * 100):.1f}%")
 
 
@@ -156,17 +168,24 @@ def main():
     ax.plot(progress_losses)
     fig.savefig(f"graphs/xentrop_{filename}", bbox_inches='tight')
 
-    # ax[2].set_title('Node Objective Function Scores')
-    # for k in range(args.number_nodes):
-    #     ax[2].plot(node_scores[k])
-    #
-    # ax[3].set_title('Node Losses')
-    # for k in range(args.number_nodes):
-    #     ax[3].plot(node_losses[k])
-    #
-    # ax[4].set_title('L1 Residuals')
-    # for k in range(args.number_nodes):
-    #     ax[4].plot(node_residuals[k])
+    # detailed graph
+    fig, ax = plt.subplots(6, figsize=(10,20))
+    ax[0].set_title('Augmented Lagrangian')
+    ax[0].plot(augmented_lagrangians)
+    ax[1].set_title('x0 Cross Entropy Loss')
+    ax[1].plot(progress_losses)
+    ax[2].set_title('Accuracy')
+    ax[2].plot(progress_accs)
+    ax[3].set_title('Node Objective Function Scores')
+    for k in range(args.number_nodes):
+        ax[3].plot(node_scores[k])
+    ax[4].set_title('Node Losses')
+    for k in range(args.number_nodes):
+        ax[4].plot(node_losses[k])
+    ax[5].set_title('L1 Residuals')
+    for k in range(args.number_nodes):
+        ax[5].plot(node_residuals[k])
+    fig.savefig(f"graphs/details_{filename}", bbox_inches='tight')
 
 def str2bool(v):
     if isinstance(v, bool):

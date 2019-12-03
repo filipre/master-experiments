@@ -11,7 +11,7 @@ import numpy as np
 def solve(xk_model, loader, device, x0_model, yk_model, rho, lr, epochs):
     print(f"Loader Size: {len(loader.dataset)}")
 
-    # scores, losses, residuals = [], [], []
+    scores, losses, residuals = [], [], []
 
     for worker_epoch in range(epochs):
         for data, target in loader:
@@ -33,28 +33,35 @@ def solve(xk_model, loader, device, x0_model, yk_model, rho, lr, epochs):
 
                 # calculate metrics
                 # loss (already calculated)
-                # losses.append(loss.item())
+                losses.append(loss.item())
 
                 # L1 residuals between x_k and x0
-                # residual = 0
-                # for x0_name, x0_value in x0_model.named_parameters():
-                #     for x_name, x_value in xk_model.named_parameters():
-                #         if x0_name == x_name:
-                #             residual = residual + np.linalg.norm(x_value.data - x0_value.data, ord=1)
-                # residuals.append(residual)
+                residual = 0
+                for x0_name, x0_value in x0_model.named_parameters():
+                    for x_name, x_value in xk_model.named_parameters():
+                        if x0_name == x_name:
+                            residual = residual + np.linalg.norm(x_value.data - x0_value.data, ord=1)
+                residuals.append(residual)
 
-                # local cost function g_k(x_k) + rho/2 ||x0 - x_k||
-                # score = 0
-                # score = score + loss
-                # augmentation = {}
-                # for x0_name, x0_value in x0_model.named_parameters():
-                #     for x_name, x_value in xk_model.named_parameters():
-                #         if x0_name == x_name:
-                #             norm2 = torch.norm(x_value - x0_value) ** 2
-                #             augmentation[x0_name] = rho/2 * norm2
-                # for x0_name, x0_value in x0_model.named_parameters():
-                #     score = score + augmentation[x0_name]
-                # scores.append(score.item())
+                # local cost function g_k(x_k) + <y_k, x0 - x_k> + rho/2 ||x0 - x_k||
+                score = loss.item()
+                scalar_product = {}
+                for x0_name, x0_value in x0_model.named_parameters():
+                    for x_name, x_value in xk_model.named_parameters():
+                        for y_name, y_value in yk_model.named_parameters():
+                            if x0_name == x_name and x0_name == y_name:
+                                x_difference_vec = (x0_value - x_value).view(-1)
+                                y_vec = y_value.view(-1)
+                                scalar_product[x0_name] = y_vec.dot(x_difference_vec)
+                augmentation = {}
+                for x0_name, x0_value in x0_model.named_parameters():
+                    for x_name, x_value in xk_model.named_parameters():
+                        if x0_name == x_name:
+                            norm2 = torch.norm(x_value - x0_value) ** 2
+                            augmentation[x0_name] = rho/2 * norm2
+                for x0_name, x0_value in x0_model.named_parameters():
+                    score = score + scalar_product[x0_name] + augmentation[x0_name]
+                scores.append(score)
 
                 # Accuracy
                 # correct = 0
@@ -66,5 +73,5 @@ def solve(xk_model, loader, device, x0_model, yk_model, rho, lr, epochs):
             # losses.append(loss.item())
             # print(f"[{worker_epoch}] Score: {score.item()}, Loss: {loss.item()}, Acc: {(acc * 100):.1f}%")
 
-    # return xk_model, scores, losses, residuals
-    return xk_model
+    return xk_model, scores, losses, residuals
+    # return xk_model
