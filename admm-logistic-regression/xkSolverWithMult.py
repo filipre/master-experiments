@@ -40,7 +40,7 @@ def solve(xk_model, loader, device, x0_model, yk_model, rho, lr, epochs):
                 for x0_name, x0_value in x0_model.named_parameters():
                     for x_name, x_value in xk_model.named_parameters():
                         if x0_name == x_name:
-                            residual = residual + np.linalg.norm(x_value.data - x0_value.data, ord=1)
+                            residual = residual + torch.norm(x0_value - x_value, p=1)
                 residuals.append(residual)
 
                 # local cost function g_k(x_k) + <y_k, x0 - x_k> + rho/2 ||x0 - x_k||
