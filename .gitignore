@@ -2,3 +2,6 @@ MNIST
 __pycache__
 admm-logistic-regression/graphs/*
 !admm-logistic-regression/graphs/.empty
+admm-logistic-regression/logs/*
+!admm-logistic-regression/logs/.empty
+admm-logistic-regression/sync-run-slurm.sh
