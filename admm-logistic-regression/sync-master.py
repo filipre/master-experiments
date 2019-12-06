@@ -47,7 +47,8 @@ def main():
     filename = f'sync_mult{args.multiplier}_split{args.split}_r{args.rho}_lr{str(args.lr)}_n{number_nodes}.pdf'
     print(filename)
 
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    # do not use cuda to avoid unnec. sending between gpu and cpu
+    use_cuda = False # not args.no_cuda and torch.cuda.is_available()
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
@@ -59,16 +60,12 @@ def main():
     rhos = [args.rho] * number_nodes
 
     x0_model = model.Net().to(device)
-    print(x0_model)
-    dummy = model.Net().to(device)
     xk_models, yk_models = [], []
     for k in range(number_nodes):
         xk_dummy = model.Net().to(device)
         xk_models.append(xk_dummy)
         yk_dummy = model.Net().to(device)
         yk_models.append(yk_dummy)
-    # xk_models = [dummy] * number_nodes
-    # yk_models = [dummy] * number_nodes
 
     augmented_lagrangians, progress_losses, progress_accs = [], [], []
 

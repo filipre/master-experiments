@@ -35,9 +35,12 @@ def main():
     parser.add_argument('--partial', type=int, default=None, help='partial? (default: None)')
     args = parser.parse_args()
 
+    cpu_device = torch.device("cpu")
     use_cuda = not args.no_cuda and torch.cuda.is_available()
-    # torch.manual_seed(args.seed) # TODO
-    device = torch.device("cuda" if use_cuda else "cpu")
+    if use_cuda:
+        cuda_device = torch.device("cuda")
+    else:
+        cuda_device = None
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
     if args.split:
@@ -45,11 +48,14 @@ def main():
     else:
         train_dataloader = dataloader.getSameTrainingLoader(args.node_batch_size, kwargs, partial=args.partial)
 
-    xk_model = model.Net().to(device)
-    yk_model = model.Net().to(device)
-    print(xk_model)
-
-    x0_model = model.Net().to(device) # will be overwritten
+    xk_model = model.Net()
+    yk_model = model.Net()
+    # if use_cuda:
+    #     xk_model = xk_model.to(cuda_device)
+    #     yk_model = yk_model.to(cuda_device)
+    x0_model = model.Net()
+    # if use_cuda:
+    #     x0_model = x0_model.to(cuda_device)
 
     dist.init_process_group(backend='gloo')
     print("init_process_group done")
@@ -57,14 +63,25 @@ def main():
     for t in range(args.max_iterations):
 
         # send out model
+        if use_cuda:
+            xk_model = xk_model.to(cpu_device)
+            yk_model = yk_model.to(cpu_device)
         send(xk_model, dst=0, tag=1)
         if args.multiplier:
             send(yk_model, dst=0, tag=2)
 
-        # receive updated x0_model
+        # receive x0 model
+        if use_cuda:
+            x0_model = x0_model.to(cpu_device)
         x0_model = receive(x0_model, src=0, tag=0)
 
-        # xk update step using my old model and the x0_model
+        # xk (and yk) update step
+        device = cpu_device
+        if use_cuda:
+            x0_model = x0_model.to(cuda_device)
+            xk_model = xk_model.to(cuda_device)
+            yk_model = yk_model.to(cuda_device)
+            device = cuda_device
         if args.multiplier:
             xk_model, scores, losses, residuals = xkSolverWithMult.solve(xk_model, train_dataloader, device, x0_model, yk_model, args.rho, args.lr, args.node_epoch)
             yk_model = ykSolver.solve(yk_model, x0_model, xk_model, args.rho)
