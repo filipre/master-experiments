@@ -56,9 +56,9 @@ def main():
     print()
 
     if args.split:
-        train_dataloader = dataloader.getSplittedTrainingLoaders(args.number_nodes, args.node_batch_size, kwargs, partial=args.partial)
+        train_dataloaders = dataloader.getSplittedTrainingLoaders(args.number_nodes, args.node_batch_size, kwargs, partial=args.partial)
     else:
-        train_dataloader = dataloader.getSameTrainingLoaders(args.number_nodes, args.node_batch_size, kwargs, partial=args.partial)
+        train_dataloaders = dataloader.getSameTrainingLoaders(args.number_nodes, args.node_batch_size, kwargs, partial=args.partial)
     test_dataloader = dataloader.getTestLoader(kwargs)
     progress_dataloader = dataloader.getProgressLoader(kwargs)
 
@@ -114,9 +114,9 @@ def main():
 
             # xk update
             if args.multiplier:
-                xk_model, scores, losses, residuals = xkSolverWithMult.solve(xk_model, train_dataloader[k], device, x0_model, yk_model, rhos[k], lrs[k], args.node_epoch)
+                xk_model, scores, losses, residuals = xkSolverWithMult.solve(xk_model, train_dataloaders[k], device, x0_model, yk_model, rhos[k], lrs[k], args.node_epoch)
             else:
-                xk_model, scores, losses, residuals = xkSolverNoMult.solve(xk_model, train_dataloader[k], device, x0_model, rhos[k], lrs[k], args.node_epoch)
+                xk_model, scores, losses, residuals = xkSolverNoMult.solve(xk_model, train_dataloaders[k], device, x0_model, rhos[k], lrs[k], args.node_epoch)
             node_scores[k] = node_scores[k] + scores
             node_losses[k] = node_losses[k] + losses
             node_residuals[k] = node_residuals[k] + residuals

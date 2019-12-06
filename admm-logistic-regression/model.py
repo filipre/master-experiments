@@ -26,3 +26,28 @@ def copyGrads(fromModel, toModel):
         for netCopyName, netCopyValue, in toModel.named_parameters():
             if paramName == netCopyName:
                 netCopyValue.grad = paramValue.grad.clone()
+
+def size(model):
+    state = model.state_dict()
+    return len(state.keys())
+
+def load(weights, model):
+    state = model.state_dict()
+    for i, key in enumerate(state.keys()):
+        state[key] = weights[i]
+    model.load_state_dict(state)
+    return model
+
+
+def save(model):
+    weights = []
+    state = model.state_dict()
+    for key in state.keys():
+        weights.append(state[key])
+    return weights
+
+def printData(model):
+    state = model.state_dict()
+    for key in state.keys():
+        print(key)
+        print(state[key])

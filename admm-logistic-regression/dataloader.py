@@ -1,8 +1,14 @@
 import torch
 from torchvision import datasets, transforms
 from torch.utils.data.dataset import random_split
+import torchnet as tnt
 
 mnist_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
+
+def getSplittedTrianingLoadersForRank(rank, number_nodes, batch_size, kwargs, partial=None):
+    selected_data = _splitDataForRank(rank, number_nodes, partial)
+    loader = torch.utils.data.DataLoader(selected_data, batch_size=batch_size, shuffle=True, **kwargs)
+    return loader
 
 def getSplittedTrainingLoaders(number_nodes, batch_size, kwargs, partial=None):
     loaders = []
@@ -13,6 +19,10 @@ def getSplittedTrainingLoaders(number_nodes, batch_size, kwargs, partial=None):
         loader = torch.utils.data.DataLoader(dataset_subset, batch_size=batch_size, shuffle=True, **kwargs)
         loaders.append(loader)
     return loaders
+
+def getSameTrainingLoader(batch_size, kwargs, partial=None):
+    train_data = _getTrainDataset(partial)
+    return torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, **kwargs)
 
 def getSameTrainingLoaders(number_nodes, batch_size, kwargs, partial=None):
     loaders = []
@@ -50,6 +60,14 @@ def _makeEqualSplit(n, k):
     for i in range(remainder):
         split[i] = split[i] + 1
     return split
+
+def _splitDataForRank(rank, number_nodes, partial):
+    train_data = _getTrainDataset(partial)
+    split = {}
+    for rank in range(1, number_nodes+1):
+        split[str(rank)] = 1 / number_nodes
+    return tnt.dataset.SplitDataset(train_data, split, str(rank))
+
 
 # def _batchGenerator(dataloader, max_epoch, worker):
 #     for epoch in range(1, max_epoch+1):
