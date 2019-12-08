@@ -41,12 +41,13 @@ def main():
     parser.add_argument('--rho', type=float, default=1, help='Rho for all nodes (default: 100)')
     parser.add_argument('--multiplier', type=str2bool, default=False, help='Use lag. multipliers?')
     parser.add_argument('--lr', type=float, default=0.01, help='Learning rate for node (default: 0.001)')
-    parser.add_argument('--split', type=str2bool, default=True, help='split?')
+    parser.add_argument('--split', type=str2bool, default=False, help='split?')
+    parser.add_argument('--barrier', type=int, default=1, help='Partial Barrier')
     # parser.add_argument('--lambda1', type=float, default=0.01, help='lambda 1 (default: 0.01)')
     # parser.add_argument('--lambda2', type=float, default=0.02, help='lambda 2 (default: 0.02)')
     args = parser.parse_args()
 
-    filename = f'async_mult{args.multiplier}_split{args.split}_r{args.rho}_lr{str(args.lr)}_n{number_nodes}.pdf'
+    filename = f'async_mult{args.multiplier}_split{args.split}_b{args.barrier}_r{args.rho}_lr{str(args.lr)}_n{number_nodes}.pdf'
     print(filename)
 
     # do not use cuda to avoid unnec. sending between gpu and cpu
@@ -74,53 +75,85 @@ def main():
     dist.init_process_group(backend='gloo')
     print("init_process_group done")
 
-    for t in range(args.max_iterations):
+    wait_threads_for_nodes = []
+    node_xk_weights = [None] * number_nodes # xk_weights
+    node_yk_weights = [None] * number_nodes # yk_weights
+    for k in range(number_nodes):
+        node_xk_weights[k] = model.save(xk_models[k])
+        node_yk_weights[k] = model.save(yk_models[k])
 
-        # recieve models from workers
-        wait_threads_for_nodes = [] # list of "wait_threads_for_weights"
-        node_xk_weights = [None] * number_nodes
-        node_yk_weights = [None] * number_nodes
-        for k in range(number_nodes):
-            node_xk_weights[k] = model.save(xk_models[k])
-            node_yk_weights[k] = model.save(yk_models[k])
-        for w in range(1, world_size):
-            wait_threads_for_weights = []
-            for i in range(len(node_xk_weights[w-1])):
-                req = dist.irecv(tensor=node_xk_weights[w-1][i], src=w, tag=1*1000+i)
+    # start all receiving jobs at the beginning
+    for w in range(1, world_size): # for k in range(number_nodes):
+        wait_threads_for_weights = []
+        for i in range(len(node_xk_weights[w-1])):
+            req = dist.irecv(tensor=node_xk_weights[w-1][i], src=w, tag=1*1000+i)
+            thr = threading.Thread(target=wait_thread, args=(req,), daemon=True)
+            thr.start()
+            wait_threads_for_weights.append(thr)
+        if args.multiplier:
+            for i in range(len(node_yk_weights[w-1])):
+                req = dist.irecv(tensor=node_yk_weights[w-1][i], src=w, tag=2*1000+i)
                 thr = threading.Thread(target=wait_thread, args=(req,), daemon=True)
                 thr.start()
                 wait_threads_for_weights.append(thr)
-            if args.multiplier:
-                for i in range(len(node_yk_weights[w-1])):
-                    req = dist.irecv(tensor=node_yk_weights[w-1][i], src=w, tag=2*1000+i)
-                    thr = threading.Thread(target=wait_thread, args=(req,), daemon=True)
-                    thr.start()
-                    wait_threads_for_weights.append(thr)
-            wait_threads_for_nodes.append(wait_threads_for_weights)
-        # TODO: For now, only simulate wait()
-        node_done = [False] * number_nodes
-        for j in range(1000):
-            print(f"waiting {j}/1000")
-            for k in range(number_nodes):
-                if node_done[k]:
-                    continue
-                done = all(not thr.is_alive() for thr in wait_threads_for_nodes[k])
-                if done:
-                    print(f"{k} done")
-                    xk_models[k] = model.load(node_xk_weights[k], xk_models[k])
-                    if args.multiplier:
-                        yk_models[k] = model.load(node_yk_weights[k], yk_models[k])
-                    node_done[k] = True
-            if all(node_done):
-                break
+        wait_threads_for_nodes.append(wait_threads_for_weights)
+
+    node_iterations = [0] * number_nodes
+
+    # for t in range(args.max_iterations):
+    while True:
+        # check status if something has been received
+        iteration_done = []
+        for k in range(number_nodes):
+            done = all(not thr.is_alive() for thr in wait_threads_for_nodes[k])
+            if done:
+                iteration_done.append(k)
+
+        if len(iteration_done) < args.barrier:
+            print(f"Not enough nodes ready: {len(iteration_done)}/{args.barrier}. Sleep...")
             time.sleep(1)
+            continue
+
+        print(f"Perform x0 update using nodes {iteration_done}")
+        for k in iteration_done:
+            node_iterations[k] = node_iterations[k] + 1
+        print(node_iterations)
+
+        for k in iteration_done:
+            xk_models[k] = model.load(node_xk_weights[k], xk_models[k])
+            if args.multiplier:
+                yk_models[k] = model.load(node_yk_weights[k], yk_models[k])
 
         # x0 update
-        x0_model.train()
         if args.multiplier:
             x0_model = x0SolverWithMult.solve(x0_model, xk_models, yk_models, rhos)
         else:
             x0_model = x0SolverNoMult.solve(x0_model, xk_models, rhos)
+
+        # send out new x0 model to iteration_done
+        x0_weights = model.save(x0_model)
+        for k in iteration_done:
+            for i, x0_weight in enumerate(x0_weights):
+                dist.isend(tensor=x0_weight, dst=k+1, tag=0*1000+i)
+                print(f"x0_weight {i} sending out to {k+1}. Tag: {0*1000+i}")
+
+        # start receiving from nodes again for iteration_done
+        for k in iteration_done:
+            node_xk_weights[k] = model.save(xk_models[k])
+            node_yk_weights[k] = model.save(yk_models[k])
+            wait_threads_for_weights = []
+            for i in range(len(node_xk_weights[k])):
+                req = dist.irecv(tensor=node_xk_weights[k][i], src=k+1, tag=1*1000+i)
+                thr = threading.Thread(target=wait_thread, args=(req,), daemon=True)
+                thr.start()
+                wait_threads_for_weights.append(thr)
+            if args.multiplier:
+                for i in range(len(node_yk_weights[k])):
+                    req = dist.irecv(tensor=node_yk_weights[k][i], src=k+1, tag=2*1000+i)
+                    thr = threading.Thread(target=wait_thread, args=(req,), daemon=True)
+                    thr.start()
+                    wait_threads_for_weights.append(thr)
+            wait_threads_for_nodes[k] = wait_threads_for_weights
 
         # evaluation
         x0_model.eval()
@@ -134,17 +167,88 @@ def main():
         augmented_lagrangians.append(aug_lagrangian)
         progress_losses.append(progress_loss)
         progress_accs.append(progress_acc)
-        print(f"[{t}] Augmented Lagrangian: {aug_lagrangian}, Loss: {progress_loss}, Acc: {(progress_acc * 100):.1f}%")
+        print(f"Augmented Lagrangian: {aug_lagrangian}, Loss: {progress_loss}, Acc: {(progress_acc * 100):.1f}%")
+        x0_model.train()
+        for k in range(number_nodes):
+            xk_models[k].train()
+            yk_models[k].train()
 
-        # send out x0 model to workers
-        x0_weights = model.save(x0_model)
-        for w in range(1, world_size):
-            for i, x0_weight in enumerate(x0_weights):
-                dist.isend(tensor=x0_weight, dst=w, tag=0*1000+i)
-                print(f"x0_weight {i} sending out to {w}. Tag: {0*1000+i}")
+        # stop condition
+        if all(it > args.max_iterations for it in node_iterations):
+            break
+
+    # for t in range(args.max_iterations):
+    #
+    #     # recieve models from workers
+    #     wait_threads_for_nodes = [] # list of "wait_threads_for_weights"
+    #     node_xk_weights = [None] * number_nodes
+    #     node_yk_weights = [None] * number_nodes
+    #     for k in range(number_nodes):
+    #         node_xk_weights[k] = model.save(xk_models[k])
+    #         node_yk_weights[k] = model.save(yk_models[k])
+    #     for w in range(1, world_size):
+    #         wait_threads_for_weights = []
+    #         for i in range(len(node_xk_weights[w-1])):
+    #             req = dist.irecv(tensor=node_xk_weights[w-1][i], src=w, tag=1*1000+i)
+    #             thr = threading.Thread(target=wait_thread, args=(req,), daemon=True)
+    #             thr.start()
+    #             wait_threads_for_weights.append(thr)
+    #         if args.multiplier:
+    #             for i in range(len(node_yk_weights[w-1])):
+    #                 req = dist.irecv(tensor=node_yk_weights[w-1][i], src=w, tag=2*1000+i)
+    #                 thr = threading.Thread(target=wait_thread, args=(req,), daemon=True)
+    #                 thr.start()
+    #                 wait_threads_for_weights.append(thr)
+    #         wait_threads_for_nodes.append(wait_threads_for_weights)
+    #     # TODO: For now, only simulate wait()
+    #     node_done = [False] * number_nodes
+    #     for j in range(1000):
+    #         print(f"waiting {j}/1000")
+    #         for k in range(number_nodes):
+    #             if node_done[k]:
+    #                 continue
+    #             done = all(not thr.is_alive() for thr in wait_threads_for_nodes[k])
+    #             if done:
+    #                 print(f"{k} done")
+    #                 xk_models[k] = model.load(node_xk_weights[k], xk_models[k])
+    #                 if args.multiplier:
+    #                     yk_models[k] = model.load(node_yk_weights[k], yk_models[k])
+    #                 node_done[k] = True
+    #         if all(node_done):
+    #             break
+    #         time.sleep(1)
+    #
+    #     # x0 update
+    #     x0_model.train()
+    #     if args.multiplier:
+    #         x0_model = x0SolverWithMult.solve(x0_model, xk_models, yk_models, rhos)
+    #     else:
+    #         x0_model = x0SolverNoMult.solve(x0_model, xk_models, rhos)
+    #
+    #     # evaluation
+    #     x0_model.eval()
+    #     for k in range(number_nodes):
+    #         xk_models[k].eval()
+    #         yk_models[k].eval()
+    #     if args.multiplier:
+    #         aug_lagrangian, progress_loss, progress_acc = augLagrangianWithMult.get(progress_dataloader, device, x0_model, xk_models, yk_models, rhos)
+    #     else:
+    #         aug_lagrangian, progress_loss, progress_acc = augLagrangianNoMult.get(progress_dataloader, device, x0_model, xk_models, rhos)
+    #     augmented_lagrangians.append(aug_lagrangian)
+    #     progress_losses.append(progress_loss)
+    #     progress_accs.append(progress_acc)
+    #     print(f"[{t}] Augmented Lagrangian: {aug_lagrangian}, Loss: {progress_loss}, Acc: {(progress_acc * 100):.1f}%")
+    #
+    #     # send out x0 model to workers
+    #     x0_weights = model.save(x0_model)
+    #     for w in range(1, world_size):
+    #         for i, x0_weight in enumerate(x0_weights):
+    #             dist.isend(tensor=x0_weight, dst=w, tag=0*1000+i)
+    #             print(f"x0_weight {i} sending out to {w}. Tag: {0*1000+i}")
+
+    print("DONE")
 
     # Create graphs
-    print("DONE")
     # fig, ax = plt.subplots(1, figsize=(10,5))
     # ax.set_title('Augmented Lagrangian')
     # ax.set_yscale('log')

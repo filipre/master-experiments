@@ -9,4 +9,5 @@ docker run \
     --env RANK=0 \
     --env WORLD_SIZE=5 \
     -p 29500:29500 \
+    -v ~/University/master/experiments/master-experiments/admm-logistic-regression/graphs:/workspace/graphs \
     --rm -it master-pytorch

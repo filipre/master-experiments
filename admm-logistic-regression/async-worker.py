@@ -32,10 +32,12 @@ def main():
     parser.add_argument('--node-epoch', type=int, default=1, metavar='N', help='number of epoch in node (default: 1)')
     parser.add_argument('--rho', type=float, default=1, help='Rho for node (default: 10)')
     parser.add_argument('--lr', type=float, default=0.01, help='Learning rate for node (default: 0.001)')
-    parser.add_argument('--max-iterations', type=int, default=10, help='How many iterations t? (default: 10)')
+    parser.add_argument('--max-iterations', type=int, default=1000, help='How many iterations t? (default: 10)')
     parser.add_argument('--multiplier', type=str2bool, default=False, help='Use lag. multipliers?')
-    parser.add_argument('--split', type=str2bool, default=True, help='split?')
+    parser.add_argument('--split', type=str2bool, default=False, help='split?')
     parser.add_argument('--partial', type=int, default=None, help='partial? (default: None)')
+    parser.add_argument('--random-sleep', type=int, default=0, help='rank depending sleep')
+    parser.add_argument('--constant-sleep', type=int, default=0, help='rank depending sleep')
     args = parser.parse_args()
 
     cpu_device = torch.device("cpu")
@@ -112,7 +114,8 @@ def main():
             xk_model, scores, losses, residuals = xkSolverNoMult.solve(xk_model, train_dataloader, device, x0_model, args.rho, args.lr, args.node_epoch)
 
         # random delay (max. 1min) to simulate network problems
-        time.sleep(random.randint(1, 60))
+        time.sleep(random.randint(0, args.random_sleep))
+        time.sleep(args.constant_sleep)
 
 
 def wait_thread(req):
