@@ -78,8 +78,8 @@ def main():
                 req = dist.isend(tensor=yk_weight, dst=0, tag=2*1000+i)
                 reqs.append(req)
                 print(f"yk_weight {i} sending out to {0}. Tag: {2*1000+i}")
-        # for req in reqs:
-        #     req.wait()
+        for req in reqs:
+            req.wait()
 
         # receive x0 model
         if use_cuda:

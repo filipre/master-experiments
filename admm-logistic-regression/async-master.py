@@ -132,10 +132,14 @@ def main():
 
         # send out new x0 model to iteration_done
         x0_weights = model.save(x0_model)
+        reqs = []
         for k in iteration_done:
             for i, x0_weight in enumerate(x0_weights):
-                dist.isend(tensor=x0_weight, dst=k+1, tag=0*1000+i)
+                req = dist.isend(tensor=x0_weight, dst=k+1, tag=0*1000+i)
                 print(f"x0_weight {i} sending out to {k+1}. Tag: {0*1000+i}")
+                reqs.append(req)
+        for req in reqs:
+            req.wait()
 
         # start receiving from nodes again for iteration_done
         for k in iteration_done:

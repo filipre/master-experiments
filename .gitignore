@@ -7,3 +7,5 @@ admm-logistic-regression/logs/*
 admm-logistic-regression/sync-run-slurm.sh
 admm-logistic-regression/run-slurm-master.sh
 admm-logistic-regression/run-slurm-workers.sh
+admm-logistic-regression/run-async-slurm-master.sh
+admm-logistic-regression/run-async-slurm-workers.sh
