@@ -16,6 +16,20 @@ import x0SolverWithMult
 import augLagrangianNoMult
 import augLagrangianWithMult
 
+
+"""
+Master
+[10] -> [0, 2]
+[11] -> [3]
+[12] -> [1]
+[13] -> [0]
+[14] -> [0, 1, 2]
+
+Worker
+[100] -> [10]
+[101] -> [13]
+"""
+
 def main():
 
     assert "WORLD_SIZE" in  os.environ, "WORLD_SIZE not set"
@@ -101,7 +115,8 @@ def main():
     node_iterations = [0] * number_nodes
 
     # for t in range(args.max_iterations):
-    while True:
+    t = 0
+    while t < args.max_iterations:
         # check status if something has been received
         iteration_done = []
         for k in range(number_nodes):
@@ -125,6 +140,7 @@ def main():
                 yk_models[k] = model.load(node_yk_weights[k], yk_models[k])
 
         # x0 update
+        t = t + 1
         if args.multiplier:
             x0_model = x0SolverWithMult.solve(x0_model, xk_models, yk_models, rhos)
         else:
@@ -138,6 +154,7 @@ def main():
                 req = dist.isend(tensor=x0_weight, dst=k+1, tag=0*1000+i)
                 print(f"x0_weight {i} sending out to {k+1}. Tag: {0*1000+i}")
                 reqs.append(req)
+        # TODO: wait?
         for req in reqs:
             req.wait()
 
