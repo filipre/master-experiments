@@ -11,7 +11,7 @@ import solver
 
 def main():
     # training batch 1, test batch 1000, epoch 10, lr 0.01, momentum 0.5
-    parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
+    parser = argparse.ArgumentParser(description='SGD')
     parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
@@ -48,6 +48,7 @@ def main():
     print()
 
     train_dataloader = dataloader.getSameTrainingLoader(args.batch_size, kwargs, partial=args.partial)
+    print(len(train_dataloader))
     test_dataloader = dataloader.getTestLoader(kwargs)
     progress_dataloader = dataloader.getProgressLoader(kwargs)
 

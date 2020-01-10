@@ -1,5 +1,6 @@
 MNIST
 __pycache__
+.ipynb_checkpoints
 admm-logistic-regression/graphs/*
 !admm-logistic-regression/graphs/.empty
 admm-logistic-regression/logs/*
