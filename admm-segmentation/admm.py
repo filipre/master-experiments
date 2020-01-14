@@ -26,10 +26,10 @@ def main():
     parser.add_argument('--scale-img-size', type=float, default=0.25, help='Rescale image')
     parser.add_argument('--k', type=int, default=4, help='Number of different segments')
     parser.add_argument('--image', type=str, default='butterfly.png', help='Image location')
-    parser.add_argument('--nodes', type=int, default=1, help='Number of nodes / splits')
-    parser.add_argument('--tau', type=float, default=1., help='Tau')
-    parser.add_argument('--delta', type=float, default=1., help='Huber Delta')
-    parser.add_argument('--alpha', type=float, default=1., help='TV Alpha')
+    parser.add_argument('--nodes', type=int, default=2, help='Number of nodes / splits')
+    parser.add_argument('--tau', type=float, default=10., help='Tau')
+    parser.add_argument('--delta', type=float, default=0.01., help='Huber Delta')
+    parser.add_argument('--alpha', type=float, default=0.1., help='TV Alpha')
     parser.add_argument('--delay', type=int, default=1, help='Delay')
     parser.add_argument('--delay-method', type=str, default='constant', help='constant, uniform, ...')
     args = parser.parse_args()
@@ -62,7 +62,7 @@ def main():
         diff_img_clusters = np.power(img - tiled, 2)
         f[:, :, k] = np.sqrt(np.sum(diff_img_clusters, axis=2))
     f = f.reshape((n, args.k), order='F')
-    f = torch.from_numpy(f).float() # TODO: .to(device) ?
+    f = torch.from_numpy(f).float().to(device)
 
     D = sparse.gradient_operator(ny, nx, ny, nx).to(device)
 
@@ -110,15 +110,15 @@ def main():
         uks = delay.forMaster(uk_queues, args.delay, args.delay_method)
         pks = delay.forMaster(pk_queues, args.delay, args.delay_method)
 
-        sum_AkTuk = torch.zeros_like(u0).to(device)
-        sum_AkTpk = torch.zeros_like(u0).to(device)
+        sum_AkTuk = torch.zeros_like(u0, device=device)
+        sum_AkTpk = torch.zeros_like(u0, device=device)
         for k in range(args.nodes):
             sum_AkTuk = sum_AkTuk + torch.sparse.mm(A_k[k].t(), uks[k])
             sum_AkTpk = sum_AkTpk + torch.sparse.mm(A_k[k].t(), pks[k])
 
         proj_v = inv_AkTAk * (sum_AkTuk - (sum_AkTpk + f)/args.tau)
         proj_H = torch.ones(args.k).to(device)
-        u0 = projSimplex.scaled_proj(proj_v, proj_H)
+        u0 = projSimplex.scaled_proj(proj_v, proj_H, device)
 
         u0_queue.appendleft(u0)
         if len(u0_queue) > args.delay:
