@@ -50,8 +50,9 @@ def opt_condition(u, D, v, alpha, delta, tau):
 
 
 def solve(D, v, L2, device, alpha=1, delta=1, tau=1, theta=1, max_iter=100000, tol=1e-10, verbose=False):
-    D = D.to(device)
-    v = v.to(device)
+    # assume that they are already on device
+    # D = D.to(device)
+    # v = v.to(device)
     alpha = torch.tensor(alpha).to(device)
     delta = torch.tensor(delta).to(device)
     tau = torch.tensor(tau).to(device)
@@ -136,10 +137,6 @@ if __name__ == '__main__':
     u = torch.rand(n, L)
     D = torch.randn(2*n, n).to_sparse()
     v = torch.rand(n, L)
-
-    # u = u.to(device)
-    # D = D.to(device)
-    # v = v.to(device)
 
     L2 = 8 / n
     alpha = 1.0

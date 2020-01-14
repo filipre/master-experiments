@@ -9,4 +9,4 @@
 #SBATCH --output=/usr/stud/filip/master-experiments/admm-segmentation/logs/sync_admm-%j.out
 #SBATCH --error=/usr/stud/filip/master-experiments/admm-segmentation/logs/sync_admm-%j.out
 source /usr/stud/filip/anaconda3/bin/activate base
-srun python huberROF.py
+srun python projSimplex.py
