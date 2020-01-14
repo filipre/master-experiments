@@ -49,11 +49,13 @@ def opt_condition(u, D, v, alpha, delta, tau):
     return opt_cond
 
 
-def solve(D, v, L2, alpha=1, delta=1, tau=1, theta=1, max_iter=100000, tol=1e-10, verbose=False):
-
-    alpha = torch.tensor(alpha)
-    delta = torch.tensor(delta)
-    tau = torch.tensor(tau)
+def solve(D, v, L2, device, alpha=1, delta=1, tau=1, theta=1, max_iter=100000, tol=1e-10, verbose=False):
+    D = D.to(device)
+    v = v.to(device)
+    L2 = L2.to(device)
+    alpha = torch.tensor(alpha).to(device)
+    delta = torch.tensor(delta).to(device)
+    tau = torch.tensor(tau).to(device)
 
     m, n = D.size()
     n_, L = v.size()
@@ -65,13 +67,14 @@ def solve(D, v, L2, alpha=1, delta=1, tau=1, theta=1, max_iter=100000, tol=1e-10
     lr_dual = 1 / (L2 * lr_primal)
     # print("LR Primal and Dual:", lr_primal, lr_dual)
 
-    p = torch.rand(m, L)
-    u = torch.rand(n, L)
-    ubar = torch.rand(n, L)
+    p = torch.rand(m, L).to(device)
+    u = torch.rand(n, L).to(device)
+    ubar = torch.rand(n, L).to(device)
     obj = objective(u, D, v, alpha, delta, tau)
     opt = opt_condition(u, D, v, alpha, delta, tau)
 
     alphas = alpha * torch.ones_like(p)
+    alphas = alphas.to(device)
 
     for t in range(max_iter):
         # dual update
@@ -135,15 +138,15 @@ if __name__ == '__main__':
     D = torch.randn(2*n, n).to_sparse()
     v = torch.rand(n, L)
 
-    u = u.to(device)
-    D = D.to(device)
-    v = v.to(device)
+    # u = u.to(device)
+    # D = D.to(device)
+    # v = v.to(device)
 
     L2 = 8 / n
     alpha = 1.0
     delta = 0.01
     tau = 1.0
-    u_opt = solve(D, v, L2, alpha=alpha, delta=delta, tau=tau, theta=1, tol=1e-9, verbose=1, max_iter=10000)
+    u_opt = solve(D, v, L2, device, alpha=alpha, delta=delta, tau=tau, theta=1, tol=1e-9, verbose=1, max_iter=10000)
     print("\n", u_opt)
 
     # u_opt2 = torch.zeros_like(u_opt)
