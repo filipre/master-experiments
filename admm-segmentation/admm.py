@@ -163,7 +163,7 @@ def main():
 
     print("Time:", tic_toc)
 
-    result = u0_queue[0].numpy()
+    result = u0_queue[0].cpu().numpy()
     classes = np.argmax(result, axis=1)
     segmented_image = np.reshape(C[classes, :], (ny, nx, 3), order='F')
 
