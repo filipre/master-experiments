@@ -122,6 +122,11 @@ def solve(D, v, L2, alpha=1, delta=1, tau=1, theta=1, max_iter=100000, tol=1e-10
 
 
 if __name__ == '__main__':
+    device = torch.device("cpu")
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    print(device)
+
     x = 20
     y = 5
     L = 1
@@ -129,6 +134,11 @@ if __name__ == '__main__':
     u = torch.rand(n, L)
     D = torch.randn(2*n, n).to_sparse()
     v = torch.rand(n, L)
+
+    u = u.to(device)
+    D = D.to(device)
+    v = v.to(device)
+
     L2 = 8 / n
     alpha = 1.0
     delta = 0.01

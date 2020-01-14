@@ -1,0 +1,4 @@
+matplotlib
+torchnet
+scikit-image
+scikit-learn

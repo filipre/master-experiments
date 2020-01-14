@@ -25,8 +25,8 @@ def gradient_operator(ny, nx, full_ny=None, full_nx=None):
     ind = torch.stack((y_coord, x_coord))
     val = torch.cat((b1_neg_ones, b1_ones, b2_neg_ones, b2_ones), 0)
     operator = torch.sparse.FloatTensor(ind, val, torch.Size([2*n, n]))
-    normalization_h = 1 / np.sqrt(ny * nx) # 1 / np.sqrt(full_ny * full_nx)
-    return operator / np.sqrt(ny * nx) # normalization_h * operator
+    normalization_h = 1 # 1 / np.sqrt(ny * nx) # 1 / np.sqrt(full_ny * full_nx)
+    return normalization_h * operator
 
 def selection_matrix(m, n, k=0):
     assert isinstance(m, int), "m is not an integer"
