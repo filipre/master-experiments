@@ -52,10 +52,9 @@ def opt_condition(u, D, v, alpha, delta, tau):
 def solve(D, v, L2, device, alpha=1, delta=1, tau=1, theta=1, max_iter=100000, tol=1e-10, verbose=False):
     D = D.to(device)
     v = v.to(device)
-    L2 = L2.to(device)
-    alpha = torch.tensor(alpha).to(device)
-    delta = torch.tensor(delta).to(device)
-    tau = torch.tensor(tau).to(device)
+    alpha = torch.tensor(alpha)
+    delta = torch.tensor(delta)
+    tau = torch.tensor(tau)
 
     m, n = D.size()
     n_, L = v.size()
