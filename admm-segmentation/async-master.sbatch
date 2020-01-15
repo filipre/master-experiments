@@ -6,7 +6,7 @@
 #SBATCH --mem=4G
 #SBATCH --time=2:00:00
 #SBATCH --mail-type=ALL
-#SBATCH --output=/usr/stud/filip/master-experiments/admm-segmentation/logs/async-worker-%j.out
-#SBATCH --error=/usr/stud/filip/master-experiments/admm-segmentation/logs/async-worker-%j.out
+#SBATCH --output=/usr/stud/filip/master-experiments/admm-segmentation/logs/async-master-%j.out
+#SBATCH --error=/usr/stud/filip/master-experiments/admm-segmentation/logs/async-master-%j.out
 source /usr/stud/filip/anaconda3/bin/activate base
-WORLD_SIZE=6 RANK=0 MASTER_ADDR="127.0.0.1" MASTER_PORT=29500 srun python async-master.py --max-iterations=100 --scale-img-size=$SCALE_IMG_SIZE --tau=$TAU --delta=$DELTA --alpha=$ALPHA --random-sleep=$RANDOM_SLEEP --constant-sleep=$CONSTANT_SLEEP --barrier=$BARRIER --experiment=$EXPERIMENT
+WORLD_SIZE=6 RANK=0 MASTER_ADDR="127.0.0.1" MASTER_PORT=29500 srun python async-master.py --max-iterations=100 --scale-img-size=$SCALE_IMG_SIZE --tau=$TAU --delta=$DELTA --alpha=$ALPHA --barrier=$BARRIER --experiment=$EXPERIMENT
