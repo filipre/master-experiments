@@ -50,7 +50,7 @@ def main():
     parser.add_argument('--experiment', type=str, default="admm", help='Experiment identifier')
     args = parser.parse_args()
 
-    filename = f"async_{experiment}_w{world_size}_b{args.barrier}_t{args.tau}_a{args.alpha}_del{args.delta}"
+    filename = f"async_{args.experiment}_w{world_size}_b{args.barrier}_t{args.tau}_a{args.alpha}_del{args.delta}"
     image_filename = f'images/image_{filename}.pdf'
     plot_filename = f'plots/plot_{filename}.pdf'
     augmented_file = open(f'data/augmented_{filename}.csv', 'w+')
