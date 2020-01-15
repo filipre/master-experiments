@@ -54,6 +54,7 @@ def main():
     plot_filename = f'plots/plot_{filename}.pdf'
     augmented_file = open(f'data/augmented_{filename}.csv', 'w+')
     delay_file = open(f'data/delays_{filename}.csv', 'w+')
+    time_file = open(f'data/time_{filename}.csv', 'w+')
     print(filename)
 
     # do not use cuda to avoid unnec. sending between gpu and cpu
@@ -218,6 +219,7 @@ def main():
 
     toc = time.time()
     tic_toc = toc - tic
+    time_file.write(tic_toc)
 
     print("Done. Creating Graphs. Time:", tic_toc)
     result = u0.numpy()
