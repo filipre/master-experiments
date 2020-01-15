@@ -47,9 +47,10 @@ def main():
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
     parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
     parser.add_argument('--barrier', type=int, default=1, help='Partial Barrier')
+    parser.add_argument('--experiment', type=str, default="admm", help='Experiment identifier')
     args = parser.parse_args()
 
-    filename = f"async_{args.image}_t{args.tau}_a{args.alpha}_del{args.delta}"
+    filename = f"async_{experiment}_w{world_size}_b{args.barrier}_t{args.tau}_a{args.alpha}_del{args.delta}"
     image_filename = f'images/image_{filename}.pdf'
     plot_filename = f'plots/plot_{filename}.pdf'
     augmented_file = open(f'data/augmented_{filename}.csv', 'w+')
@@ -219,7 +220,7 @@ def main():
 
     toc = time.time()
     tic_toc = toc - tic
-    time_file.write(tic_toc)
+    time_file.write(str(tic_toc))
 
     print("Done. Creating Graphs. Time:", tic_toc)
     result = u0.numpy()
