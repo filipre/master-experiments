@@ -16,10 +16,6 @@ import split
 import delay
 
 
-def huber(x, delta):
-    return torch.where(torch.le(torch.abs(x), delta), torch.pow(x, 2)/(2*delta), torch.abs(x) - delta/2)
-
-
 def main():
     parser = argparse.ArgumentParser(description='ADMM Segmentation')
     parser.add_argument('--max-iterations', type=int, default=100, help='How many iterations? (default: 10)')
@@ -145,6 +141,26 @@ def main():
                 pk_queues[k].pop()
 
         # Evaluation
+        # diff_uk = 0
+        # for k in range(args.nodes):
+        #     for l in range(args.k):
+        #         u0l = u0_queue[0][:, l]
+        #         ukl = uk_queue[k][0][:, l]
+        #         pkl = pk_queue[k][0][:, l]
+        #         G = D_k[k]
+        #         b = sigma(G*ukl, args.delta)
+        #         opt = args.alpha*G.T*sparse.diags(b)*G*ukl - pkl + args.tau*(ukl - A_k[k]*u0l)
+        #         # opt2 = pkl
+        #         # opt3 = args.tau*(ukl - A_k[k]*u0l)
+        #         # opt = opt1 - opt2 + opt3
+        #         # print(np.max(opt1), np.max(opt2), np.max(opt3))
+        #         diff_uk = diff_uk + np.linalg.norm(opt, ord=1)
+        # diff_uks.append(diff_uk)
+        # diff_pk = 0
+        # for k in range(args.nodes):
+        #     opt = A_k[k]*u0_delays[0] - uk_delays[k][0]
+        #     diff_pk = diff_pk + np.linalg.norm(opt, ord=1)
+        # diff_pks.append(diff_pk)
         uf = torch.sum(u0_queue[0] * f)
         huberDu = args.alpha * torch.sum(huber(torch.sparse.mm(D, u0_queue[0]), args.delta))
         augmented = uf + huberDu
@@ -200,6 +216,13 @@ def main():
     # ax[3+args.k].set_title('Optimality condition [l1 norm]')
 
     fig.savefig(plot_filename, bbox_inches='tight')
+
+
+def huber(x, delta):
+    return torch.where(torch.le(torch.abs(x), delta), torch.pow(x, 2)/(2*delta), torch.abs(x) - delta/2)
+
+# def sigma(x, delta):
+#     return np.where(x <= delta, 1/delta, np.sign(x)/x)
 
 if __name__ == '__main__':
     main()

@@ -53,6 +53,7 @@ def main():
     image_filename = f'images/image_{filename}.pdf'
     plot_filename = f'plots/plot_{filename}.pdf'
     augmented_file = open(f'data/augmented_{filename}.csv', 'w+')
+    delay_file = open(f'data/delays_{filename}.csv', 'w+')
     print(filename)
 
     # do not use cuda to avoid unnec. sending between gpu and cpu
@@ -61,6 +62,10 @@ def main():
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    # device = torch.device("cpu")
+    # if torch.cuda.is_available():
+    #     device = torch.device("cuda")
+    # print(device)
 
     # TODO: receive rhos from workers
     rhos = [args.tau] * number_nodes
@@ -158,6 +163,8 @@ def main():
         print(f"Perform x0 update using nodes {iteration_done}")
         for k in iteration_done:
             node_iterations[k] = node_iterations[k] + 1
+        delay_file.write(', '.join(str(e) for e in iteration_done))
+        delay_file.write("\r\n")
         print(node_iterations)
 
         # u0 update
@@ -168,7 +175,7 @@ def main():
             sum_AkTpk = sum_AkTpk + torch.sparse.mm(A_k[k].t(), pks[k])
         proj_v = inv_AkTAk * (sum_AkTuk - (sum_AkTpk + f)/args.tau)
         proj_H = torch.ones(args.k)
-        u0 = projSimplex.scaled_proj(proj_v, proj_H)
+        u0 = projSimplex.scaled_proj(proj_v, proj_H, device)
 
         # send out new u0 model to iteration_done
         reqs = []

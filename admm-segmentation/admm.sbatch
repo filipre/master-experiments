@@ -9,4 +9,4 @@
 #SBATCH --output=/usr/stud/filip/master-experiments/admm-segmentation/logs/admm-%j.out
 #SBATCH --error=/usr/stud/filip/master-experiments/admm-segmentation/logs/admm-%j.out
 source /usr/stud/filip/anaconda3/bin/activate base
-srun python admm.py --max-iterations=100 --nodes=5 --scale-img-size=$SCALE_IMG_SIZE --tau=$TAU --delta=$DELTA --alpha=$ALPHA --delay=$DELAY --delay-method=$DELAY_METHOD
+srun python admm.py --max-iterations=100 --nodes=$NODES --scale-img-size=$SCALE_IMG_SIZE --tau=$TAU --delta=$DELTA --alpha=$ALPHA --delay=$DELAY --delay-method=$DELAY_METHOD

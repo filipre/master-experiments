@@ -130,7 +130,8 @@ def main():
         huber_D = Dk
         huber_v = torch.sparse.mm(Ak, u0) + (pk/args.tau)
         huber_L2 = 8 / nk
-        uk = huberROF.solve(huber_D, huber_v, huber_L2, alpha=args.alpha, delta=args.delta, tau=args.tau, theta=1, verbose=False)
+        device = cpu_device
+        uk = huberROF.solve(huber_D, huber_v, huber_L2, device, alpha=args.alpha, delta=args.delta, tau=args.tau, theta=1, verbose=False)
 
         # dual update
         pk = pk + args.tau * (torch.sparse.mm(Ak, u0) - uk)
