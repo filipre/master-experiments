@@ -45,7 +45,7 @@ def main():
     parser.add_argument('--delta', type=float, default=0.01, help='Huber Delta')
     parser.add_argument('--alpha', type=float, default=0.1, help='TV Alpha')
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
-    parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
+    parser.add_argument('--enable-cuda', type=str2bool, default=True, help='Enable Cuda')
     parser.add_argument('--barrier', type=int, default=1, help='Partial Barrier')
     parser.add_argument('--experiment', type=str, default="admm", help='Experiment identifier')
     args = parser.parse_args()
@@ -60,9 +60,10 @@ def main():
 
     # do not use cuda to avoid unnec. sending between gpu and cpu
     # TODO: later, do use cuda!
-    use_cuda = False # not args.no_cuda and torch.cuda.is_available()
+    use_cuda = False # args.enable_cuda and torch.cuda.is_available()
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
+    print(device)
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     # device = torch.device("cpu")
     # if torch.cuda.is_available():

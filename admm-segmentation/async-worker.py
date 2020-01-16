@@ -49,11 +49,12 @@ def main():
     args = parser.parse_args()
 
     cpu_device = torch.device("cpu")
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    use_cuda = args.enable_cuda and torch.cuda.is_available()
     if use_cuda:
         device = torch.device("cuda")
     else:
         device = cpu_device
+    print(device)
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
     raw_image = imread(args.image) # Image.open(args.image)
