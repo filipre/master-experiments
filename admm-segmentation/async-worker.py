@@ -14,7 +14,6 @@ import time
 import random
 import threading
 
-
 import sparse
 import projSimplex
 import huberROF
@@ -52,12 +51,11 @@ def main():
     cpu_device = torch.device("cpu")
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     if use_cuda:
-        cuda_device = torch.device("cuda")
+        device = torch.device("cuda")
     else:
-        cuda_device = None
+        device = cpu_device
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
-    # TODO get splitted image data
     raw_image = imread(args.image) # Image.open(args.image)
     raw_image = rescale(raw_image, args.scale_img_size, anti_aliasing=True, multichannel=True)
     img = np.array(raw_image, dtype=np.float64) # dtype=np.float64
@@ -74,8 +72,8 @@ def main():
         diff_img_clusters = np.power(img - tiled, 2)
         f[:, :, k] = np.sqrt(np.sum(diff_img_clusters, axis=2))
     f = f.reshape((n, args.k), order='F')
-    f = torch.from_numpy(f).float()
-    D = sparse.gradient_operator(ny, nx, ny, nx)
+    f = torch.from_numpy(f).float().to(device)
+    D = sparse.gradient_operator(ny, nx, ny, nx).to(device)
     ny_k, nx_k, c_k, n_k, A_k, D_k = [], [], [], [], [], []
     starts, lengths = split.split(nx, number_nodes)
     for k in range(number_nodes):
@@ -83,9 +81,9 @@ def main():
         nx_k.append(lengths[k])
         c_k.append(3)
         n_k.append(ny_k[k] * nx_k[k])
-        Ak = sparse.selection_matrix(n_k[k], n, ny*starts[k])
+        Ak = sparse.selection_matrix(n_k[k], n, ny*starts[k]).to(device)
         A_k.append(Ak)
-        Dk = sparse.gradient_operator(ny_k[k], nx_k[k], ny, nx)
+        Dk = sparse.gradient_operator(ny_k[k], nx_k[k], ny, nx).to(device)
         D_k.append(Dk)
 
     # important values for current node
@@ -95,42 +93,36 @@ def main():
     Dk = D_k[k]
 
     # init data, will be overwritten later
-    u0 = torch.rand(n, args.k)
-    uk = torch.rand(n_k[k], args.k)
-    pk = torch.rand(n_k[k], args.k)
-    # TODO: send to GPU? .to(cuda_device)
+    u0 = torch.rand(n, args.k).to(device)
+    uk = torch.rand(n_k[k], args.k).to(device)
+    pk = torch.rand(n_k[k], args.k).to(device)
 
     dist.init_process_group(backend='gloo')
     print("init_process_group done")
 
     for t in range(args.max_iterations):
 
-        # TODO: switch between GPU and CPU for caluclating and receiving
-
-        # send out model
+        # send out model (can only happen on CPU)
+        uk = uk.to(cpu_device)
+        pk = pk.to(cpu_device)
         req_uk = dist.isend(tensor=uk, dst=0, tag=1)
         req_pk = dist.isend(tensor=pk, dst=0, tag=2)
         req_uk.wait()
         req_pk.wait()
+        uk = uk.to(device)
+        pk = pk.to(device)
         print("Model sent to master (rank 0)")
 
         # receive u0 model
+        u0 = u0.to(cpu_device)
         req = dist.irecv(tensor=u0, src=0, tag=0)
         req.wait() # TODO: verify
-        # req = dist.irecv(tensor=u0, src=0, tag=0)
-        # thr = threading.Thread(target=wait_thread, args=(req,), daemon=True)
-        # thr.start()
-        # for j in range(1000):
-        #     print(f"waiting {j}/1000")
-        #     if not thr.is_alive():
-        #         break
-        #     time.sleep(1)
+        u0 = u0.to(device)
 
         # primal update
         huber_D = Dk
         huber_v = torch.sparse.mm(Ak, u0) + (pk/args.tau)
         huber_L2 = 8 / nk
-        device = cpu_device
         uk = huberROF.solve(huber_D, huber_v, huber_L2, device, alpha=args.alpha, delta=args.delta, tau=args.tau, theta=1, verbose=False)
 
         # dual update
@@ -139,9 +131,6 @@ def main():
         # random delay (max. 1min) to simulate network problems
         time.sleep(random.randint(0, args.random_sleep))
         time.sleep(args.constant_sleep)
-
-# def wait_thread(req):
-#     req.wait()
 
 def str2bool(v):
     if isinstance(v, bool):
