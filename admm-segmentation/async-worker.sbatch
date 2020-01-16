@@ -9,4 +9,4 @@
 #SBATCH --output=/usr/stud/filip/master-experiments/admm-segmentation/logs/async-worker-%j.out
 #SBATCH --error=/usr/stud/filip/master-experiments/admm-segmentation/logs/async-worker-%j.out
 source /usr/stud/filip/anaconda3/bin/activate base
-WORLD_SIZE=$WORLD_SIZE RANK=$RANK MASTER_ADDR=$MASTER_ADDR MASTER_PORT=29500 srun python async-worker.py --max-iterations=100000 --scale-img-size=$SCALE_IMG_SIZE --tau=$TAU --delta=$DELTA --alpha=$ALPHA --random-sleep=$RANDOM_SLEEP --constant-sleep=$CONSTANT_SLEEP
+WORLD_SIZE=$WORLD_SIZE RANK=$RANK MASTER_ADDR=$MASTER_ADDR MASTER_PORT=29500 srun python async-worker.py --max-iterations=100000 --scale-img-size=$SCALE_IMG_SIZE --tau=$TAU --delta=$DELTA --alpha=$ALPHA --random-sleep=$RANDOM_SLEEP --constant-sleep=$CONSTANT_SLEEP --enable-cuda=$ENABLE_CUDA

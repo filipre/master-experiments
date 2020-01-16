@@ -43,7 +43,7 @@ def main():
     parser.add_argument('--delta', type=float, default=0.01, help='Huber Delta')
     parser.add_argument('--alpha', type=float, default=0.1, help='TV Alpha')
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
-    parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
+    parser.add_argument('--enable-cuda', type=str2bool, default=True, help='Enable Cuda')
     parser.add_argument('--random-sleep', type=int, default=3, help='rank depending sleep')
     parser.add_argument('--constant-sleep', type=int, default=0, help='rank depending sleep')
     args = parser.parse_args()
