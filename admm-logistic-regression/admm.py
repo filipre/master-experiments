@@ -47,6 +47,7 @@ def main():
     filenameCsv = f'dm{args.delay_method}_d{args.max_delay}_mult{args.multiplier}_split{args.split}_r{args.rho}_lr{str(args.lr)}_n{args.number_nodes}.csv'
     # augmented_file = open(f'data/augmented_{filenameCsv}', 'w+')
     loss_file = open(f'data/loss_{filenameCsv}', 'w+')
+    acc_file = open(f'data/acc_{filenameCsv}', 'w+')
     filename = f'dm{args.delay_method}_d{args.max_delay}_mult{args.multiplier}_split{args.split}_r{args.rho}_lr{str(args.lr)}_n{args.number_nodes}.pdf'
     print(filename)
 
@@ -155,6 +156,7 @@ def main():
         progress_losses.append(progress_loss)
         progress_accs.append(progress_acc)
         loss_file.write(f"{progress_loss}\r\n")
+        acc_file.write(f"{progress_acc}\r\n")
         print(f"[{t}] Augmented Lagrangian: {aug_lagrangian}, Loss: {progress_loss}, Acc: {(progress_acc * 100):.1f}%")
 
 
