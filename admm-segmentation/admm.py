@@ -126,6 +126,7 @@ def main():
 
             u0 = delay.forWorker(u0_queue, args.delay, args.delay_method)
 
+            # TODO
             huber_D = D_k[k]
             huber_v = torch.sparse.mm(A_k[k], u0) + (pk_queues[k][0]/args.tau)
             huber_L2 = 8 / n_k[k]

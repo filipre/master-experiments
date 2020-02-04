@@ -139,7 +139,7 @@ if __name__ == '__main__':
     v = torch.rand(n, L)
 
     L2 = 8 / n
-    alpha = 1.0
+    alpha = 0.1
     delta = 0.01
     tau = 1.0
     u_opt = solve(D, v, L2, device, alpha=alpha, delta=delta, tau=tau, theta=1, tol=1e-9, verbose=1, max_iter=10000)
