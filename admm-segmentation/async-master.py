@@ -211,7 +211,7 @@ def main():
             tau_norm = args.tau/2 * torch.pow(torch.norm(torch.sparse.mm(A_k[k], u0) - uks[k]), 2)
             augmented = augmented + tau_norm
         augmented_lagrangians.append(augmented)
-        augmented_file.write(f"{augmented}\r\n")
+        augmented_file.write(f"{time.time() - tic}; {augmented}\r\n")
         print(f"[{t}] {augmented}")
 
         # stop condition
