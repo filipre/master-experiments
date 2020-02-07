@@ -40,6 +40,8 @@ def main():
     parser.add_argument('--constant-sleep', type=int, default=0, help='rank depending sleep')
     args = parser.parse_args()
 
+    torch.manual_seed(args.seed)
+    
     cpu_device = torch.device("cpu")
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     if use_cuda:

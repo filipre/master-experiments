@@ -28,6 +28,7 @@ def main():
     parser.add_argument('--alpha', type=float, default=0.1, help='TV Alpha')
     parser.add_argument('--delay', type=int, default=1, help='Delay')
     parser.add_argument('--delay-method', type=str, default='constant', help='constant, uniform, ...')
+    parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
     args = parser.parse_args()
 
     filename = f"admm_{args.image}_t{args.tau}_a{args.alpha}_del{args.delta}_n{args.nodes}_d{args.delay}_dm{args.delay_method}"
@@ -35,6 +36,8 @@ def main():
     plot_filename = f'plots/plot_{filename}.pdf'
     augmented_file = open(f'data/augmented_{filename}.csv', 'w+')
     print(filename)
+
+    torch.manual_seed(args.seed)
 
     device = torch.device("cpu")
     if torch.cuda.is_available():

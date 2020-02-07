@@ -66,9 +66,10 @@ def main():
     time_file = open(f'data/time_{filename}.csv', 'w+')
     print(filename)
 
+    torch.manual_seed(args.seed)
+
     # do not use cuda to avoid unnec. sending between gpu and cpu
     use_cuda = False # not args.no_cuda and torch.cuda.is_available()
-    torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
