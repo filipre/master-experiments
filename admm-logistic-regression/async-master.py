@@ -62,6 +62,7 @@ def main():
 
     filename = f'async_{args.experiment}_mult{args.multiplier}_split{args.split}_b{args.barrier}_r{args.rho}_lr{str(args.lr)}_n{number_nodes}.pdf'
     loss_file = open(f'data/loss_{filename}.csv', 'w+')
+    acc_file = open(f'data/acc_{filename}.csv', 'w+')
     delay_file = open(f'data/delays_{filename}.csv', 'w+')
     time_file = open(f'data/time_{filename}.csv', 'w+')
     print(filename)
@@ -193,7 +194,9 @@ def main():
         augmented_lagrangians.append(aug_lagrangian)
         progress_losses.append(progress_loss)
         progress_accs.append(progress_acc)
-        loss_file.write(f"{time.time() - tic}; {progress_loss}\r\n")
+        current_time = time.time() - tic
+        loss_file.write(f"{current_time}; {progress_loss}\r\n")
+        acc_file.write(f"{current_time}; {progress_acc}\r\n")
         print(f"Augmented Lagrangian: {aug_lagrangian}, Loss: {progress_loss}, Acc: {(progress_acc * 100):.1f}%")
         x0_model.train()
         for k in range(number_nodes):
