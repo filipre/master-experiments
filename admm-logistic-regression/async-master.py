@@ -119,7 +119,7 @@ def main():
 
     tic = time.time()
     t = 0
-    while t < args.max_iterations:
+    while True:
         # check status if something has been received
         iteration_done = []
         for k in range(number_nodes):
