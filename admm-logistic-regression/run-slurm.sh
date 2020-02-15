@@ -8,46 +8,46 @@ DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="no" RHO="1" LR="0.
 DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="no" MULTIPLIER="no" RHO="1" LR="0.001" sbatch admm.sbatch
 
 # constant
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="yes" RHO="1" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="yes" RHO="5" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="yes" RHO="10" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="yes" RHO="50" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="yes" RHO="1" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="yes" RHO="5" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="yes" RHO="10" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="yes" RHO="50" LR="0.001" sbatch admm.sbatch
 
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="no" MULTIPLIER="yes" RHO="1" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="no" MULTIPLIER="yes" RHO="5" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="no" MULTIPLIER="yes" RHO="10" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="no" MULTIPLIER="yes" RHO="50" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="no" MULTIPLIER="yes" RHO="1" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="no" MULTIPLIER="yes" RHO="5" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="no" MULTIPLIER="yes" RHO="10" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="no" MULTIPLIER="yes" RHO="50" LR="0.001" sbatch admm.sbatch
 
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="no" RHO="1" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="no" RHO="5" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="no" RHO="10" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="no" RHO="50" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="no" RHO="1" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="no" RHO="5" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="no" RHO="10" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="no" RHO="50" LR="0.001" sbatch admm.sbatch
 
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="no" MULTIPLIER="no" RHO="1" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="no" MULTIPLIER="no" RHO="5" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="no" MULTIPLIER="no" RHO="10" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="constant" MAX_DELAY="1" SPLIT="no" MULTIPLIER="no" RHO="50" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="no" MULTIPLIER="no" RHO="1" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="no" MULTIPLIER="no" RHO="5" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="no" MULTIPLIER="no" RHO="10" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="constant" MAX_DELAY="5" SPLIT="no" MULTIPLIER="no" RHO="50" LR="0.001" sbatch admm.sbatch
 
 # uniform
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="yes" RHO="1" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="yes" RHO="5" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="yes" RHO="10" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="yes" RHO="50" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="yes" RHO="1" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="yes" RHO="5" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="yes" RHO="10" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="yes" RHO="50" LR="0.001" sbatch admm.sbatch
 
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="no" MULTIPLIER="yes" RHO="1" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="no" MULTIPLIER="yes" RHO="5" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="no" MULTIPLIER="yes" RHO="10" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="no" MULTIPLIER="yes" RHO="50" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="no" MULTIPLIER="yes" RHO="1" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="no" MULTIPLIER="yes" RHO="5" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="no" MULTIPLIER="yes" RHO="10" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="no" MULTIPLIER="yes" RHO="50" LR="0.001" sbatch admm.sbatch
 
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="no" RHO="1" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="no" RHO="5" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="no" RHO="10" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="yes" MULTIPLIER="no" RHO="50" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="no" RHO="1" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="no" RHO="5" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="no" RHO="10" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="yes" MULTIPLIER="no" RHO="50" LR="0.001" sbatch admm.sbatch
 
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="no" MULTIPLIER="no" RHO="1" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="no" MULTIPLIER="no" RHO="5" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="no" MULTIPLIER="no" RHO="10" LR="0.001" sbatch admm.sbatch
-DELAY_METHOD="uniform" MAX_DELAY="1" SPLIT="no" MULTIPLIER="no" RHO="50" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="no" MULTIPLIER="no" RHO="1" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="no" MULTIPLIER="no" RHO="5" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="no" MULTIPLIER="no" RHO="10" LR="0.001" sbatch admm.sbatch
+DELAY_METHOD="uniform" MAX_DELAY="5" SPLIT="no" MULTIPLIER="no" RHO="50" LR="0.001" sbatch admm.sbatch
 
 
 # # no delays
