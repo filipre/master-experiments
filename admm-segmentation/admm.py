@@ -52,7 +52,8 @@ def main():
     print(f"{ny} x {nx} = {n}")
     img_vec = img.reshape((n, c), order='F') # TODO!
 
-    kmeans = KMeans(n_clusters=args.k, init='random', n_init=10, max_iter=300, tol=1e-04, random_state=0).fit(img_vec)
+    np.random.seed(args.seed)
+    kmeans = KMeans(n_clusters=args.k, init='random', n_init=10, max_iter=300, tol=1e-04, random_state=args.seed).fit(img_vec)
     C = kmeans.cluster_centers_
     f = np.zeros((ny, nx, args.k))
     for k in range(args.k):
@@ -103,7 +104,39 @@ def main():
     tic = time.time()
 
     for t in range(args.max_iterations):
-        print(t)
+        # Evaluation
+        # diff_uk = 0
+        # for k in range(args.nodes):
+        #     for l in range(args.k):
+        #         u0l = u0_queue[0][:, l]
+        #         ukl = uk_queue[k][0][:, l]
+        #         pkl = pk_queue[k][0][:, l]
+        #         G = D_k[k]
+        #         b = sigma(G*ukl, args.delta)
+        #         opt = args.alpha*G.T*sparse.diags(b)*G*ukl - pkl + args.tau*(ukl - A_k[k]*u0l)
+        #         # opt2 = pkl
+        #         # opt3 = args.tau*(ukl - A_k[k]*u0l)
+        #         # opt = opt1 - opt2 + opt3
+        #         # print(np.max(opt1), np.max(opt2), np.max(opt3))
+        #         diff_uk = diff_uk + np.linalg.norm(opt, ord=1)
+        # diff_uks.append(diff_uk)
+        # diff_pk = 0
+        # for k in range(args.nodes):
+        #     opt = A_k[k]*u0_delays[0] - uk_delays[k][0]
+        #     diff_pk = diff_pk + np.linalg.norm(opt, ord=1)
+        # diff_pks.append(diff_pk)
+        uf = torch.sum(u0_queue[0] * f)
+        huberDu = args.alpha * torch.sum(huber(torch.sparse.mm(D, u0_queue[0]), args.delta))
+        augmented = uf + huberDu
+        for k in range(args.nodes):
+            scalar_product = torch.sum(torch.mm(pk_queues[k][0].t(), torch.sparse.mm(A_k[k], u0_queue[0]) - uk_queues[k][0]))
+            augmented = augmented - scalar_product # TODO! verify
+        for k in range(args.nodes):
+            tau_norm = args.tau/2 * torch.pow(torch.norm(torch.sparse.mm(A_k[k], u0_queue[0]) - uk_queues[k][0]), 2)
+            augmented = augmented + tau_norm
+        augmenteds.append(augmented)
+        augmented_file.write(f"{augmented}\r\n")
+        print(f"[{t}] {augmented}")
 
         # Master update u0
         uks = delay.forMaster(uk_queues, args.delay, args.delay_method)
@@ -143,40 +176,6 @@ def main():
             if len(uk_queues[k]) > args.delay:
                 uk_queues[k].pop()
                 pk_queues[k].pop()
-
-        # Evaluation
-        # diff_uk = 0
-        # for k in range(args.nodes):
-        #     for l in range(args.k):
-        #         u0l = u0_queue[0][:, l]
-        #         ukl = uk_queue[k][0][:, l]
-        #         pkl = pk_queue[k][0][:, l]
-        #         G = D_k[k]
-        #         b = sigma(G*ukl, args.delta)
-        #         opt = args.alpha*G.T*sparse.diags(b)*G*ukl - pkl + args.tau*(ukl - A_k[k]*u0l)
-        #         # opt2 = pkl
-        #         # opt3 = args.tau*(ukl - A_k[k]*u0l)
-        #         # opt = opt1 - opt2 + opt3
-        #         # print(np.max(opt1), np.max(opt2), np.max(opt3))
-        #         diff_uk = diff_uk + np.linalg.norm(opt, ord=1)
-        # diff_uks.append(diff_uk)
-        # diff_pk = 0
-        # for k in range(args.nodes):
-        #     opt = A_k[k]*u0_delays[0] - uk_delays[k][0]
-        #     diff_pk = diff_pk + np.linalg.norm(opt, ord=1)
-        # diff_pks.append(diff_pk)
-        uf = torch.sum(u0_queue[0] * f)
-        huberDu = args.alpha * torch.sum(huber(torch.sparse.mm(D, u0_queue[0]), args.delta))
-        augmented = uf + huberDu
-        for k in range(args.nodes):
-            scalar_product = torch.sum(torch.mm(pk_queues[k][0].t(), torch.sparse.mm(A_k[k], u0_queue[0]) - uk_queues[k][0]))
-            augmented = augmented - scalar_product # TODO! verify
-        for k in range(args.nodes):
-            tau_norm = args.tau/2 * torch.pow(torch.norm(torch.sparse.mm(A_k[k], u0_queue[0]) - uk_queues[k][0]), 2)
-            augmented = augmented + tau_norm
-        augmenteds.append(augmented)
-        augmented_file.write(f"{augmented}\r\n")
-        print(f"[{t}] {augmented}")
 
     toc = time.time()
     tic_toc = toc - tic

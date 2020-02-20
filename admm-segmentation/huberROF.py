@@ -95,8 +95,8 @@ def solve(D, v, L2, device, alpha=1, delta=1, tau=1, theta=1, max_iter=100000, t
         obj_new = objective(u_new, D, v, alpha, delta, tau)
         opt_new = opt_condition(u_new, D, v, alpha, delta, tau)
 
-        if t % verbose == 0:
-            print(f"[{t}] {obj} {torch.norm(opt_new, p=1)}")
+        # if t % verbose == 0:
+        #     print(f"[{t}] {obj} {torch.norm(opt_new, p=1)}")
 
         if obj_new > obj:
             lr_primal = lr_primal / 2
@@ -114,8 +114,8 @@ def solve(D, v, L2, device, alpha=1, delta=1, tau=1, theta=1, max_iter=100000, t
         #     break
 
         if torch.abs(obj - obj_new) < tol:
-            print(f"[{t}] {obj} {torch.norm(opt_new, p=1)}")
-            print("Done because not progressing anymore")
+            # print(f"[{t}] {obj} {torch.norm(opt_new, p=1)}")
+            # print("Done because not progressing anymore")
             break
 
         obj = obj_new

@@ -3,6 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --gres=gpu:1,VRAM:12G
+#SBATCH --exclude=node11,node12,node9
 #SBATCH --mem=4G
 #SBATCH --time=6:00:00
 #SBATCH --mail-type=ALL
